@@ -1,0 +1,11 @@
+cryptography
+fastapi
+uvicorn
+python-multipart
+SQLAlchemy
+psycopg2-binary
+passlib[bcrypt]
+python-jose[cryptography]
+stripe
+pillow
+python-multipart

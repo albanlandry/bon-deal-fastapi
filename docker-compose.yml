@@ -1,0 +1,33 @@
+version: '3.3'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: marketplace
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: fastapi_backend
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://myuser:mypassword@db:5432/marketplace
+      STRIPE_SECRET_KEY: your_stripe_secret_key
+      JWT_SECRET_KEY: e63ca9e9b6570ec2ab436081851e933a40d9cbd777cd3ce51d26c2ce826a0e25de4b2efd4ddb39816d4177b87e7f8c27df9d01d83adda4315d5e4cb6660077deb88b32148d88473fa3e5873a9687f9b72dd7a776d01699bfd12b3cf5803169e80497539d3118e320e99d947fa5aafa6131d7bdd03938206181d2dfbe166a2f76b5566be0b373503a47dac865a0570f5697b266bfbe98e01257e2d3e557f1515bbb0aa8daa6d2f79700cd901ae65cad120ba488e830cecb8e9f0173e13b339f5fb51027a454c46d13f775a8ed5ab191655cbae43eb3dc13879dff933c31bbc2765920c35c144b1e7a4ca464dfc789c233adb0724a3b2383d1f97cbed778ebd96e
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  pgdata:
