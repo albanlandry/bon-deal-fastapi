@@ -10,5 +10,5 @@ This is a simple implementation of a fullstack application, where Next.js is use
     - [x] View all the posts
     - [x] Images upload
 - Frontend
-    - [] Login Form
-    - [] List of Posts
+    - [ ] Login Form
+    - [ ] List of Posts
