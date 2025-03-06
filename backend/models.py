@@ -9,7 +9,7 @@ class User(Base):
     password = Column(String)
     city = Column(String)
     role = Column(String, default="user")  # "user" or "admin"
-    posts = relationship("Post", back_populates="owner")
+    posts = relationship("Post", back_populates="owner", cascade="all, delete")
 
 
 class Post(Base):
@@ -23,6 +23,7 @@ class Post(Base):
     allow_negotiation = Column(Boolean, default=False)
     state = Column(Enum("draft", "published", "unpublished", name="post_state"), default="draft")
     owner_id = Column(Integer, ForeignKey("users.id"))
+    owner =  relationship("User", back_populates="posts")
     city = Column(String)
     images = relationship("PostImage", back_populates="post")
 
