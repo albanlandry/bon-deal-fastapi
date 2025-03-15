@@ -1,4 +1,7 @@
+/frontend_old/node_modules
+/frontend_old/.next
 /frontend/node_modules
 /frontend/.next
 /.vscode
 /__pycache__
+node_modules
