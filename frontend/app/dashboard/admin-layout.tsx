@@ -27,12 +27,17 @@ const Sidebar: FC<SidebarProps> = ({ isOpen }) => {
                         </Link>
                     </li>
                     <li>
-                        <Link href="/users" className="flex items-center gap-2">
+                        <Link href="/dashboard/posts" className="flex items-center gap-2">
+                            <Settings size={20} /> Posts
+                        </Link>
+                    </li>
+                    <li>
+                        <Link href="/dashboard/users" className="flex items-center gap-2">
                             <User size={20} /> Users
                         </Link>
                     </li>
                     <li>
-                        <Link href="/settings" className="flex items-center gap-2">
+                        <Link href="/dashboard/settings" className="flex items-center gap-2">
                             <Settings size={20} /> Settings
                         </Link>
                     </li>
