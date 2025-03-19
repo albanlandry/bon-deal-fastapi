@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from pydantic import BaseModel, Field, constr
@@ -48,6 +48,21 @@ def get_db():
     finally:
         db.close()
 
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """ Validates JWT and returns the authenticated user. """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if not username:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
+    return user
 
 # === Request Models ===
 class UserCreate(BaseModel):
@@ -60,6 +75,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+COOKIE_EXPIRE_MINUTES = 60  # Session valid for 1 hour
 
 # === Authentication Logic ===
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
@@ -82,7 +98,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db), response: Response = None):
     """ Handles user login and returns JWT token. """
     user = db.query(User).filter(User.username == form_data.username).first()
     
@@ -91,24 +107,33 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
 
     access_token = create_access_token({"sub": user.username})
     
+    # Set HttpOnly cookie
+    expire = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    response.set_cookie(
+        key="token",
+        value=access_token,
+        httponly=True,         # Prevent JS access
+        secure=False,          # Set to True in production (HTTPS)
+        samesite="lax",        # Prevent CSRF attacks
+        max_age=int(expire.total_seconds()),
+        path="/"
+    )
+    
     return {"access_token": access_token, "token_type": "bearer"}
 
+def logout(response: Response):
+    response.delete_cookie(key="token", path="/")
+    return {"message": "Logged out"}
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    """ Validates JWT and returns the authenticated user. """
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if not username:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-    except JWTError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+@router.get("/me")
+def read_users_me(current_user: User = Depends(get_current_user)):
+    """Returns the profile of the currently authenticated user."""
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "role": current_user.role
+    }
 
-    user = db.query(User).filter(User.username == username).first()
-    if not user:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-
-    return user
 # from fastapi import APIRouter, Depends, HTTPException
 # from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 # from passlib.context import CryptContext

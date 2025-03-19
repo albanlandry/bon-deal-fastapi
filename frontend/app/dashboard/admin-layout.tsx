@@ -1,12 +1,14 @@
 'use client'
 
 import { ReactNode, FC } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, LayoutDashboard, User, Settings, LogIn } from "lucide-react";
 import { Button } from "@chakra-ui/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Input, Stack } from "@chakra-ui/react";
+import { fetchWithAuth } from "@/lib/fetchWithAuth";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -52,13 +54,24 @@ interface HeaderProps {
 }
 
 const Header: FC<HeaderProps> = ({ toggleSidebar }) => {
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+      async function fetchUser() {
+        const res = await fetchWithAuth("http://localhost:8000/users/me");
+        const data = await res.json();
+        setUser(data);
+      }
+      fetchUser();
+    }, []);
+
     return (
         <header className="flex justify-between items-center p-4 bg-gray-800 text-white">
             <Button variant="ghost" onClick={toggleSidebar} className="md:hidden">
                 <Menu size={24} />
             </Button>
             <h1 className="text-lg font-bold">Admin Dashboard</h1>
-            <div>User Profile</div>
+            <div>User Profile: {JSON.stringify(user)}</div>
         </header>
     );
 };

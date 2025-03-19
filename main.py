@@ -8,8 +8,23 @@ from backend.chat_service import router as chat_router
 from backend.admin_service import router as admin_router
 from backend.payment_service import router as payment_router
 from backend.upload_service.upload_service import router as upload_router
+from fastapi.middleware.cors import CORSMiddleware
+
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:8080",
+]
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Initialize database tables
 database.init_db()

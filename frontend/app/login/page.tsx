@@ -25,7 +25,7 @@ export default function LoginPage() {
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (token) {
-            router.push("/");
+            router.push("/dashboard");
         }
     }, [router]);
 
@@ -39,6 +39,7 @@ export default function LoginPage() {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",
+                credentials: "include", // ✅ Important! Include cookies in request/response
             },
             body: body.toString(),
         });
@@ -47,10 +48,11 @@ export default function LoginPage() {
 
         if (res.ok) {
             const data = await res.json();
-            if (data.access_token) {
-                localStorage.setItem("token", data.access_token);
-                router.push("/");
-            }
+            console.log(data);
+            // if (data.access_token) {
+            //     localStorage.setItem("token", data.access_token);
+            //     router.push("/dashboard");
+            // }
         } else {
             setError("Invalid username or password.");
         }
